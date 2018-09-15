@@ -97,6 +97,7 @@ def train():
 
   losses = []
   accuracies = []
+  epochs_test = []
 
   num_batches = math.ceil(cifar10['train'].labels.shape[0]/batch_size)
   for epoch in range(epochs):
@@ -112,13 +113,13 @@ def train():
       out = mlp(x_tensor)
       loss = loss_function(out, torch.max(y_tensor, 1)[1])
       total_loss += loss
-      losses.append(total_loss)
 
       opt.zero_grad()
 
       loss.backward()
       opt.step()
 
+    losses.append(total_loss)
     print('Epoch: {} Loss: {:.4f}'.format(epoch, total_loss))
     if (epoch + 1) % eval_freq == 0:
         test_x = cifar10['test'].images
@@ -129,15 +130,15 @@ def train():
         test_out = mlp(test_x_tensor)
         test_accuracy = accuracy(test_out, test_y_tensor)
         accuracies.append(test_accuracy)
+        epochs_test.append(epoch + 1)
         print("\n===================================")
         print('Accuracy {}'.format(test_accuracy))
         print("===================================\n")
 
-
   plt.plot(losses)
   plt.show()
 
-  plt.plot(accuracies)
+  plt.plot(epochs_test, accuracies)
   plt.show()
   ########################
   # END OF YOUR CODE    #
