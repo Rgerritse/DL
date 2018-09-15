@@ -11,6 +11,10 @@ import numpy as np
 import os
 from mlp_pytorch import MLP
 import cifar10_utils
+import torch
+from torch import optim, nn
+import math
+import matplotlib.pyplot as plt
 
 # Default constants
 DNN_HIDDEN_UNITS_DEFAULT = '100'
@@ -28,7 +32,7 @@ def accuracy(predictions, targets):
   """
   Computes the prediction accuracy, i.e. the average of correct predictions
   of the network.
-  
+
   Args:
     predictions: 2D float array of size [batch_size, n_classes]
     labels: 2D int array of size [batch_size, n_classes]
@@ -37,7 +41,7 @@ def accuracy(predictions, targets):
   Returns:
     accuracy: scalar float, the accuracy of predictions,
               i.e. the average correct predictions over the whole batch
-  
+
   TODO:
   Implement accuracy computation.
   """
@@ -45,7 +49,11 @@ def accuracy(predictions, targets):
   ########################
   # PUT YOUR CODE HERE  #
   #######################
-  raise NotImplementedError
+  o = torch.max(predictions, 1)[1].cpu().numpy()
+  t = torch.max(targets, 1)[1].cpu().numpy()
+  compared = np.equal(o, t)
+  correct = np.sum(compared)
+  accuracy = correct / len(compared)
   ########################
   # END OF YOUR CODE    #
   #######################
@@ -54,7 +62,7 @@ def accuracy(predictions, targets):
 
 def train():
   """
-  Performs training and evaluation of MLP model. 
+  Performs training and evaluation of MLP model.
 
   TODO:
   Implement training and evaluation of MLP model. Evaluate your model on the whole test set each eval_freq iterations.
@@ -73,9 +81,64 @@ def train():
     dnn_hidden_units = []
 
   ########################
-  # PUT YOUR CODE HERE  #
   #######################
-  raise NotImplementedError
+  # PUT YOUR CODE HERE  #
+  learning_rate = FLAGS.learning_rate
+  epochs = FLAGS.max_steps
+  batch_size = FLAGS.batch_size
+  eval_freq = FLAGS.eval_freq
+
+  cifar10 = cifar10_utils.get_cifar10('cifar10/cifar-10-batches-py')
+
+  mlp = MLP(32*32*3, dnn_hidden_units, 10).cuda()
+
+  opt = optim.SGD(mlp.parameters(), lr = learning_rate)
+  loss_function = nn.CrossEntropyLoss()
+
+  losses = []
+  accuracies = []
+
+  num_batches = math.ceil(cifar10['train'].labels.shape[0]/batch_size)
+  for epoch in range(epochs):
+    total_loss = 0
+
+    # cifar10['train']._index_in_epoch = 0
+    for batch in range(num_batches):
+
+      x, y = cifar10['train'].next_batch(batch_size)
+      x_tensor = torch.from_numpy(np.reshape(x, [batch_size, 32 * 32 * 3])).cuda()
+      y_tensor = torch.from_numpy(y).cuda()
+
+      out = mlp(x_tensor)
+      loss = loss_function(out, torch.max(y_tensor, 1)[1])
+      total_loss += loss
+      losses.append(total_loss)
+
+      opt.zero_grad()
+
+      loss.backward()
+      opt.step()
+
+    print('Epoch: {} Loss: {:.4f}'.format(epoch, total_loss))
+    if (epoch + 1) % eval_freq == 0:
+        test_x = cifar10['test'].images
+        test_y = cifar10['test'].labels
+        test_x_tensor = torch.from_numpy(np.reshape(test_x, [test_x.shape[0], 32*32*3])).cuda()
+        test_y_tensor = torch.from_numpy(test_y).cuda()
+
+        test_out = mlp(test_x_tensor)
+        test_accuracy = accuracy(test_out, test_y_tensor)
+        accuracies.append(test_accuracy)
+        print("\n===================================")
+        print('Accuracy {}'.format(test_accuracy))
+        print("===================================\n")
+
+
+  plt.plot(losses)
+  plt.show()
+
+  plt.plot(accuracies)
+  plt.show()
   ########################
   # END OF YOUR CODE    #
   #######################

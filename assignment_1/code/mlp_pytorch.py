@@ -6,6 +6,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import torch.nn as nn
+
 class MLP(nn.Module):
   """
   This class implements a Multi-layer Perceptron in PyTorch.
@@ -15,8 +17,8 @@ class MLP(nn.Module):
 
   def __init__(self, n_inputs, n_hidden, n_classes):
     """
-    Initializes MLP object. 
-    
+    Initializes MLP object.
+
     Args:
       n_inputs: number of inputs.
       n_hidden: list of ints, specifies the number of units
@@ -26,7 +28,7 @@ class MLP(nn.Module):
       n_classes: number of classes of the classification problem.
                  This number is required in order to specify the
                  output dimensions of the MLP
-    
+
     TODO:
     Implement initialization of the network.
     """
@@ -34,21 +36,36 @@ class MLP(nn.Module):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    super(MLP, self).__init__()
+
+    num_hidden = len(n_hidden)
+    self.hidden = nn.ModuleList()
+    self.relu = nn.ReLU()
+
+    for i in range(num_hidden):
+        if i == 0:
+            self.hidden.append(nn.Linear(n_inputs, n_hidden[i]))
+        else:
+            self.hidden.append(nn.Linear(n_hidden[i-1], n_hidden[i]))
+
+    if num_hidden == 0:
+        self.out = nn.Linear(n_inputs, n_classes)
+    else:
+        self.out = nn.Linear(n_hidden[num_hidden - 1], n_classes)
     ########################
     # END OF YOUR CODE    #
     #######################
 
   def forward(self, x):
     """
-    Performs forward pass of the input. Here an input tensor x is transformed through 
+    Performs forward pass of the input. Here an input tensor x is transformed through
     several layer transformations.
-    
+
     Args:
       x: input to the network
     Returns:
       out: outputs of the network
-    
+
     TODO:
     Implement forward pass of the network.
     """
@@ -56,7 +73,12 @@ class MLP(nn.Module):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    out = x
+    # out = self.fc1(out)
+    for layer in self.hidden:
+        out = layer(out)
+        out = self.relu(out)
+    out = self.out(out)
     ########################
     # END OF YOUR CODE    #
     #######################

@@ -6,29 +6,29 @@ import numpy as np
 
 class LinearModule(object):
   """
-  Linear module. Applies a linear transformation to the input data. 
+  Linear module. Applies a linear transformation to the input data.
   """
   def __init__(self, in_features, out_features):
     """
-    Initializes the parameters of the module. 
-    
+    Initializes the parameters of the module.
+
     Args:
       in_features: size of each input sample
       out_features: size of each output sample
 
     TODO:
-    Initialize weights self.params['weight'] using normal distribution with mean = 0 and 
-    std = 0.0001. Initialize biases self.params['bias'] with 0. 
-    
+    Initialize weights self.params['weight'] using normal distribution with mean = 0 and
+    std = 0.0001. Initialize biases self.params['bias'] with 0.
+
     Also, initialize gradients with zeros.
     """
-    
+
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    self.params = {'weight': None, 'bias': None}
-    self.grads = {'weight': None, 'bias': None}
-    raise NotImplementedError
+    self.params = {'weight': np.random.normal(0, 0.0001, (out_features, in_features)), 'bias': np.zeros((out_features,1))}
+    self.grads = {'weight': np.zeros((out_features, in_features)), 'bias': np.zeros((out_features, 1))}
+    # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -36,22 +36,25 @@ class LinearModule(object):
   def forward(self, x):
     """
     Forward pass.
-    
+
     Args:
       x: input to the module
     Returns:
       out: output of the module
-    
+
     TODO:
-    Implement forward pass of the module. 
-    
+    Implement forward pass of the module.
+
     Hint: You can store intermediate variables inside the object. They can be used in backward pass computation.                                                           #
     """
-    
+
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    # self.x = x
+    Wx = np.matmul(self.params['weight'], np.transpose(x))
+    out = np.transpose(Wx + self.params['bias'])
+    # out = 0
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -66,20 +69,24 @@ class LinearModule(object):
       dout: gradients of the previous module
     Returns:
       dx: gradients with respect to the input of the module
-    
+
     TODO:
-    Implement backward pass of the module. Store gradient of the loss with respect to 
-    layer parameters in self.grads['weight'] and self.grads['bias']. 
+    Implement backward pass of the module. Store gradient of the loss with respect to
+    layer parameters in self.grads['weight'] and self.grads['bias'].
     """
 
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    # self.grads['weight'] = np.transpose(np.matmul(np.transpose(dout), self.x))
+    # self.grads['bias'] = np.transpose(dout)
+    dx = np.matmul(dout, self.params['weight'])
+    # dx = 0
+    # print(dx.shape)
+    # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     #######################
-    
     return dx
 
 class ReLUModule(object):
@@ -89,22 +96,23 @@ class ReLUModule(object):
   def forward(self, x):
     """
     Forward pass.
-    
+    argmax = np.argmax(y)
     Args:
       x: input to the module
     Returns:
       out: output of the module
-    
+
     TODO:
-    Implement forward pass of the module. 
-    
+    Implement forward pass of the module.
+
     Hint: You can store intermediate variables inside the object. They can be used in backward pass computation.                                                           #
     """
 
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    self.x = x
+    out = np.maximum(0, x)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -119,7 +127,7 @@ class ReLUModule(object):
       dout: gradients of the previous modul
     Returns:
       dx: gradients with respect to the input of the module
-    
+
     TODO:
     Implement backward pass of the module.
     """
@@ -127,10 +135,10 @@ class ReLUModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    dx = dout * np.sign(np.max(0, self.x))
     ########################
     # END OF YOUR CODE    #
-    #######################    
+    #######################
 
     return dx
 
@@ -145,18 +153,22 @@ class SoftMaxModule(object):
       x: input to the module
     Returns:
       out: output of the module
-    
+
     TODO:
-    Implement forward pass of the module. 
-    To stabilize computation you should use the so-called Max Trick - https://timvieira.github.io/blog/post/2014/02/11/exp-normalize-trick/
-    
+    Implement forward pass of the module.
+    To stabilize computation you should use the so-called Max Trick -
+
     Hint: You can store intermediate variables inside the object. They can be used in backward pass computation.                                                           #
     """
 
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    self.x = x
+    b = x.max()
+    y = np.exp(x - b)
+    out = y / y.sum()
+    # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -171,7 +183,7 @@ class SoftMaxModule(object):
       dout: gradients of the previous modul
     Returns:
       dx: gradients with respect to the input of the module
-    
+
     TODO:
     Implement backward pass of the module.
     """
@@ -179,7 +191,7 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    dx = np.transpose(self.x + dout * self.x)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -199,19 +211,20 @@ class CrossEntropyModule(object):
       y: labels of the input
     Returns:
       out: cross entropy loss
-    
+
     TODO:
-    Implement forward pass of the module. 
+    Implement forward pass of the module.
     """
 
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    argmax = np.argmax(y, axis=1)
+    arr = x[np.arange(x.shape[0]), argmax]
+    out = np.mean(-np.log(arr))
     ########################
     # END OF YOUR CODE    #
     #######################
-
     return out
 
   def backward(self, x, y):
@@ -223,7 +236,7 @@ class CrossEntropyModule(object):
       y: labels of the input
     Returns:
       dx: gradient of the loss with the respect to the input x.
-    
+
     TODO:
     Implement backward pass of the module.
     """
@@ -231,7 +244,7 @@ class CrossEntropyModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    dx = -y/x
     ########################
     # END OF YOUR CODE    #
     #######################
