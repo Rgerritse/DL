@@ -26,8 +26,8 @@ class LinearModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    self.params = {'weight': np.random.normal(0, 0.0001, (out_features, in_features)), 'bias': np.zeros((out_features,1))}
-    self.grads = {'weight': np.zeros((out_features, in_features)), 'bias': np.zeros((out_features, 1))}
+    self.params = {'weight': np.random.normal(0, 0.0001, (out_features, in_features)), 'bias': np.zeros(out_features)}
+    self.grads = {'weight': np.zeros((out_features, in_features)), 'bias': np.zeros(out_features)}
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
@@ -51,10 +51,9 @@ class LinearModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    # self.x = x
-    Wx = np.matmul(self.params['weight'], np.transpose(x))
-    out = np.transpose(Wx + self.params['bias'])
-    # out = 0
+    self.x = x
+    Wx = x @ self.params['weight'].T
+    out = np.add(Wx, self.params['bias'])
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -78,12 +77,10 @@ class LinearModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    # self.grads['weight'] = np.transpose(np.matmul(np.transpose(dout), self.x))
-    # self.grads['bias'] = np.transpose(dout)
-    dx = np.matmul(dout, self.params['weight'])
+    self.grads['weight'] = dout.T @ self.x
+    self.grads['bias'] = np.mean(dout.T, axis=1)
+    dx = dout @ self.params['weight']
     # dx = 0
-    # print(dx.shape)
-    # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -113,6 +110,7 @@ class ReLUModule(object):
     #######################
     self.x = x
     out = np.maximum(0, x)
+
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -135,7 +133,7 @@ class ReLUModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = dout * np.sign(np.max(0, self.x))
+    dx = dout * np.sign(np.maximum(0, self.x))
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -191,7 +189,7 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = np.transpose(self.x + dout * self.x)
+    dx = np.transpose(self.x + dout @ self.x)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -221,7 +219,7 @@ class CrossEntropyModule(object):
     #######################
     argmax = np.argmax(y, axis=1)
     arr = x[np.arange(x.shape[0]), argmax]
-    out = np.mean(-np.log(arr))
+    out = np.sum(-np.log(arr))
     ########################
     # END OF YOUR CODE    #
     #######################
