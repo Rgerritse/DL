@@ -162,10 +162,16 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
+    # print("===============softmax forward")
     self.x = x
-    b = x.max()
-    y = np.exp(x - b)
-    out = y / y.sum()
+    # print("x")
+    # print(x.shape)
+    b = np.amax(x, axis=1)
+    # print("b")
+    # print(b.shape)
+    y = np.exp(np.add(x.T, -b).T)
+    out = y/np.sum(y, axis=1)[:, None]
+
     # raise NotImplementedError
     ########################
     # END OF YOUR CODE    #
@@ -189,7 +195,12 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = np.transpose(self.x + dout @ self.x)
+    # print("dout")
+    # print("***************softmax dout")
+
+    temp = np.diag(np.diag(self.x @ (1-self.x).T)) - (self.x @ self.x.T)
+    dx = (dout.T @ temp).T
+    # dx = np.transpose(self.x + dout @ self.x)
     ########################
     # END OF YOUR CODE    #
     #######################

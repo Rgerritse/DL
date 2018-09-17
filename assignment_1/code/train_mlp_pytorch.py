@@ -84,7 +84,7 @@ def train():
   #######################
   # PUT YOUR CODE HERE  #
   learning_rate = FLAGS.learning_rate
-  epochs = FLAGS.max_steps
+  max_steps = FLAGS.max_steps
   batch_size = FLAGS.batch_size
   eval_freq = FLAGS.eval_freq
 
@@ -95,50 +95,47 @@ def train():
   opt = optim.SGD(mlp.parameters(), lr = learning_rate)
   loss_function = nn.CrossEntropyLoss()
 
-  losses = []
+  train_losses = []
   accuracies = []
-  epochs_test = []
+  steps = []
 
-  num_batches = math.ceil(cifar10['train'].labels.shape[0]/batch_size)
-  for epoch in range(epochs):
+  for step in range(max_steps):
     total_loss = 0
 
-    # cifar10['train']._index_in_epoch = 0
-    for batch in range(num_batches):
+    x, y = cifar10['train'].next_batch(batch_size)
+    x_tensor = torch.from_numpy(np.reshape(x, [batch_size, 32 * 32 * 3])).cuda()
+    y_tensor = torch.from_numpy(y).cuda()
 
-      x, y = cifar10['train'].next_batch(batch_size)
-      x_tensor = torch.from_numpy(np.reshape(x, [batch_size, 32 * 32 * 3])).cuda()
-      y_tensor = torch.from_numpy(y).cuda()
+    out = mlp(x_tensor)
+    loss = loss_function(out, torch.max(y_tensor, 1)[1])
+    total_loss += loss
 
-      out = mlp(x_tensor)
-      loss = loss_function(out, torch.max(y_tensor, 1)[1])
-      total_loss += loss
+    opt.zero_grad()
 
-      opt.zero_grad()
+    loss.backward()
+    opt.step()
 
-      loss.backward()
-      opt.step()
+    train_losses.append(total_loss)
+    print('Step: {} Loss: {:.4f}'.format(step + 1, total_loss))
+    if (step + 1) % eval_freq == 0:
+      test_x = cifar10['test'].images
+      test_y = cifar10['test'].labels
+      test_x_tensor = torch.from_numpy(np.reshape(test_x, [test_x.shape[0], 32*32*3])).cuda()
+      test_y_tensor = torch.from_numpy(test_y).cuda()
 
-    losses.append(total_loss)
-    print('Epoch: {} Loss: {:.4f}'.format(epoch, total_loss))
-    if (epoch + 1) % eval_freq == 0:
-        test_x = cifar10['test'].images
-        test_y = cifar10['test'].labels
-        test_x_tensor = torch.from_numpy(np.reshape(test_x, [test_x.shape[0], 32*32*3])).cuda()
-        test_y_tensor = torch.from_numpy(test_y).cuda()
+      test_out = mlp(test_x_tensor)
+      test_accuracy = accuracy(test_out, test_y_tensor)
+      accuracies.append(test_accuracy)
+      steps.append(step + 1)
 
-        test_out = mlp(test_x_tensor)
-        test_accuracy = accuracy(test_out, test_y_tensor)
-        accuracies.append(test_accuracy)
-        epochs_test.append(epoch + 1)
-        print("\n===================================")
-        print('Accuracy {}'.format(test_accuracy))
-        print("===================================\n")
+      print('Step:{} Accuracy {}'.format(step + 1, test_accuracy))
 
-  plt.plot(losses)
+  plt.plot(steps, train_losses)
+  plt.xlabel("Step")
+  plt.ylabel("Training loss")
   plt.show()
 
-  plt.plot(epochs_test, accuracies)
+  plt.plot(steps, accuracies)
   plt.show()
   ########################
   # END OF YOUR CODE    #
