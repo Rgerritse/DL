@@ -43,21 +43,11 @@ class VanillaRNN(nn.Module):
         # Implementation here ...
         h_1 = self.h_init
 
-
-        # print()
-        # for t in range(self.seq_length):
-        for t in range(1):
+        for t in range(self.seq_length):
             x_t = torch.t(x)[t].unsqueeze(0)
-            # print(x_t)
-        #
-        #
-            a = self.W_hx @ x_t + self.W_hh @ h_1 + self.b_h.expand(-1, self.batch_size)
-            # print(a)
-            # print()
-            h = (torch.exp(a) - torch.exp(-a)) / (torch.exp(a) + torch.exp(-a))
-        #
+
+            h = torch.tanh(self.W_hx @ x_t + self.W_hh @ h_1 + self.b_h.expand(-1, self.batch_size))
             p = self.W_ph @ h + self.b_p.expand(-1, self.batch_size)
-        #
-            # h_1 = h
+
+            h_1 = h
         return torch.t(p)
-        # pass

@@ -30,6 +30,8 @@ from dataset import PalindromeDataset
 from vanilla_rnn import VanillaRNN
 from lstm import LSTM
 
+import math
+
 # You may want to look into tensorboardX for logging
 # from tensorboardX import SummaryWriter
 
@@ -52,7 +54,6 @@ def train(config):
 
     # Setup the loss and optimizer
     criterion = torch.nn.CrossEntropyLoss()  # fixme
-    # print("learning_rate", type(config.learning_rate))
     optimizer = torch.optim.RMSprop(model.parameters(), lr=config.learning_rate)  # fixme
 
     for step, (batch_inputs, batch_targets) in enumerate(data_loader):
@@ -61,8 +62,6 @@ def train(config):
         t1 = time.time()
 
         out = model(batch_inputs.cuda())
-
-        # print(out)
 
         batch_loss = criterion(out, batch_targets.cuda())
 
