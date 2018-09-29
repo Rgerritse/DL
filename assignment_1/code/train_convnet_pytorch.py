@@ -92,16 +92,6 @@ def train():
   accuracies = []
   steps = []
 
-  # for batch in range(1000):
-  #   print(batch)
-  # # while(cifar10['test']._epochs_completed == 0):
-  #   test_x, test_y = cifar10['test'].next_batch(batch_size)
-  #   test_x_tensor = torch.from_numpy(test_x).cuda()
-  #   test_y_tensor = torch.from_numpy(test_y).cuda()
-  #   test_out = convnet(test_x_tensor)
-    # test_pred_seq.append(test_out)
-    # test_labels_seq.append(test_y_tensor)
-
   for step in range(max_steps):
     total_loss = 0
 
@@ -139,7 +129,7 @@ def train():
       steps.append(step + 1)
 
       cifar10['test']._epochs_completed = 0
-      print('Step: {} Accuracy {}'.format(step + 1, test_accuracy))
+      print('Step: {} Accuracy {:.2f}'.format(step + 1, test_accuracy))
 
   plt.plot(range(max_steps), train_losses)
   plt.xlabel("Step")

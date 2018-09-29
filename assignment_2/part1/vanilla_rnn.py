@@ -30,7 +30,7 @@ class VanillaRNN(nn.Module):
         self.seq_length = seq_length
         self.batch_size = batch_size
 
-        self.h_init = torch.zeros(num_hidden, batch_size).cuda()
+        self.h_init = torch.zeros(num_hidden, batch_size).to(device=device)
 
         self.W_hx = nn.Parameter(torch.randn(num_hidden, input_dim))
         self.W_hh = nn.Parameter(torch.randn(num_hidden, num_hidden))

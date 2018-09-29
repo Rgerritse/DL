@@ -74,7 +74,6 @@ class MLP(nn.Module):
     # PUT YOUR CODE HERE  #
     #######################
     out = x
-    # out = self.fc1(out)
     for layer in self.hidden:
         out = layer(out)
         out = self.relu(out)

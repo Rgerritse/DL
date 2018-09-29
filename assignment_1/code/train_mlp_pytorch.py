@@ -92,7 +92,8 @@ def train():
 
   mlp = MLP(32*32*3, dnn_hidden_units, 10).cuda()
 
-  opt = optim.SGD(mlp.parameters(), lr = learning_rate)
+  # opt = optim.SGD(mlp.parameters(), lr = learning_rate)
+  opt = optim.Adam(mlp.parameters(), lr = learning_rate)
   loss_function = nn.CrossEntropyLoss()
 
   train_losses = []
@@ -128,9 +129,9 @@ def train():
       accuracies.append(test_accuracy)
       steps.append(step + 1)
 
-      print('Step:{} Accuracy {}'.format(step + 1, test_accuracy))
+      print('Step: {} Accuracy {:.2f}'.format(step + 1, test_accuracy))
 
-  plt.plot(steps, train_losses)
+  plt.plot(range(max_steps), train_losses)
   plt.xlabel("Step")
   plt.ylabel("Training loss")
   plt.show()

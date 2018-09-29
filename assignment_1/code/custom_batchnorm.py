@@ -64,10 +64,13 @@ class CustomBatchNormAutograd(nn.Module):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    mean = torch.mean(input, 0)
-    var = torch.mean(torch.pow(input - mean.expand_as(input), 2), 0)
-    norm = (input - mean.expand_as(input))/(torch.sqrt(var.expand_as(input) + self.eps))
-    out = self.gamma.expand_as(norm) * norm + self.beta.expand_as(norm)
+    if input.shape[1] == self.n_neurons:
+        mean = torch.mean(input, 0)
+        var = torch.var(input, 0, unbiased=False)
+        norm = (input - mean.expand_as(input))/(torch.sqrt(var.expand_as(input) + self.eps))
+        out = self.gamma.expand_as(norm) * norm + self.beta.expand_as(norm)
+    else:
+        raise RuntimeError('Wrong shape in dim 1 of input: got {}, but expected {}'.format(input.shape[1], self.n_neurons))
     ########################
     # END OF YOUR CODE    #
     #######################

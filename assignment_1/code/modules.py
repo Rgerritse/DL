@@ -78,9 +78,8 @@ class LinearModule(object):
     # PUT YOUR CODE HERE  #
     #######################
     self.grads['weight'] = dout.T @ self.x
-    self.grads['bias'] = np.mean(dout.T, axis=1)
+    self.grads['bias'] = np.sum(dout.T, axis=1)
     dx = dout @ self.params['weight']
-    # dx = 0
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -93,7 +92,7 @@ class ReLUModule(object):
   def forward(self, x):
     """
     Forward pass.
-    argmax = np.argmax(y)
+
     Args:
       x: input to the module
     Returns:
@@ -162,17 +161,10 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    # print("===============softmax forward")
-    self.x = x
-    # print("x")
-    # print(x.shape)
     b = np.amax(x, axis=1)
-    # print("b")
-    # print(b.shape)
     y = np.exp(np.add(x.T, -b).T)
     out = y/np.sum(y, axis=1)[:, None]
-
-    # raise NotImplementedError
+    self.soft = out
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -195,16 +187,8 @@ class SoftMaxModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    # print("dout")
-    # print("***************softmax dout")
-
-    temp = np.diag(np.diag(self.x @ (1-self.x).T)) - (self.x @ self.x.T)
-    dx = (dout.T @ temp).T
-    # dx = np.transpose(self.x + dout @ self.x)
-    ########################
-    # END OF YOUR CODE    #
-    #######################
-
+    soft = self.soft
+    dx = (dout * soft) - (np.sum(dout * soft, axis=1, keepdims=True) * soft)
     return dx
 
 class CrossEntropyModule(object):
@@ -230,7 +214,7 @@ class CrossEntropyModule(object):
     #######################
     argmax = np.argmax(y, axis=1)
     arr = x[np.arange(x.shape[0]), argmax]
-    out = np.sum(-np.log(arr))
+    out = np.mean(-np.log(arr))
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -253,7 +237,7 @@ class CrossEntropyModule(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    dx = -y/x
+    dx = (-y/x)/y.shape[0]
     ########################
     # END OF YOUR CODE    #
     #######################

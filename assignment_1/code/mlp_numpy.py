@@ -36,7 +36,25 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+
+    super(MLP, self).__init__()
+    #
+    num_hidden = len(n_hidden)
+    self.hidden = []
+    # self.hidden = nn.ModuleList()
+    self.soft = SoftMaxModule()
+    self.relu = ReLUModule()
+    #
+    for i in range(num_hidden):
+        if i == 0:
+            self.hidden.append(LinearModule(n_inputs, n_hidden[i]))
+        else:
+            self.hidden.append(LinearModule(n_hidden[i-1], n_hidden[i]))
+    #
+    if num_hidden == 0:
+        self.out = LinearModule(n_inputs, n_classes)
+    else:
+        self.out = LinearModule(n_hidden[num_hidden - 1], n_classes)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -58,7 +76,12 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    out = x
+    for layer in self.hidden:
+        out = layer.forward(out)
+        out = self.relu.forward(out)
+    out = self.out.forward(out)
+    out = self.soft.forward(out)
     ########################
     # END OF YOUR CODE    #
     #######################
@@ -79,7 +102,11 @@ class MLP(object):
     ########################
     # PUT YOUR CODE HERE  #
     #######################
-    raise NotImplementedError
+    dout = self.soft.backward(dout)
+    dout = self.out.backward(dout)
+    for layer in reversed(self.hidden):
+        dout = self.relu.backward(dout)
+        dout = layer.backward(dout)
     ########################
     # END OF YOUR CODE    #
     #######################

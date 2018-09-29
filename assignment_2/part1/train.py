@@ -45,8 +45,12 @@ def train(config):
     device = torch.device(config.device)
 
     # Initialize the model that we are going to use
-    model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden,
-                       config.num_classes, config.batch_size, device).cuda()
+    if config.model_type == "RNN":
+        model = VanillaRNN(config.input_length, config.input_dim, config.num_hidden,
+                          config.num_classes, config.batch_size, device).to(device=device)
+    else:
+        model = LSTM(config.input_length, config.input_dim, config.num_hidden,
+                     config.num_classes, config.batch_size, device).to(device=device)
 
     # Initialize the dataset and data loader (note the +1)
     dataset = PalindromeDataset(config.input_length+1)
@@ -61,15 +65,16 @@ def train(config):
         # Only for time measurement of step through network
         t1 = time.time()
 
-        out = model(batch_inputs.cuda())
+        out = model(batch_inputs.to(device=device))
 
-        batch_loss = criterion(out, batch_targets.cuda())
+        batch_loss = criterion(out, batch_targets.to(device=device))
 
         optimizer.zero_grad()
         batch_loss.backward()
 
         ############################################################################
         # QUESTION: what happens here and why?
+        # ANSWER: See report
         ############################################################################
         torch.nn.utils.clip_grad_norm(model.parameters(), max_norm=config.max_norm)
         ############################################################################
